@@ -10,9 +10,11 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
@@ -25,6 +27,9 @@ public class MainActivity extends AppCompatActivity {
     List<Fish> fishList;
     int positionSelected;
     FishFirebaseData fishDataSource;
+    DatabaseReference fishDbRef;
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +41,29 @@ public class MainActivity extends AppCompatActivity {
         setupAddButton();
         setupDetailButton();
         setupDeleteButton();
+        mAuth = FirebaseAuth.getInstance();
+
     }
 
     private void setupFirebaseDataChange() {
+        fishDataSource = new FishFirebaseData();
+        fishDbRef = fishDataSource.open();
+        fishDbRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d("CIS3334", "Starting onDataChange()");        // debugging log
+                fishList = fishDataSource.getAllFish(dataSnapshot);
+                // Instantiate a custom adapter for displaying each fish
+                fishAdapter = new FishAdapter(MainActivity.this, android.R.layout.simple_list_item_single_choice, fishList);
+                // Apply the adapter to the list
+                listViewFish.setAdapter(fishAdapter);
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d("CIS3334", "onCancelled: ");
+            }
+        });
+
         // ToDo - Add code here to update the listview with data from Firebase
     }
 
